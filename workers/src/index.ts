@@ -63,6 +63,30 @@ app.get('/health', async (c) => {
   })
 })
 
+app.get('/lumi/health', async (c) => {
+  const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
+  try {
+    const res = await fetch(`${lumiApiUrl}/lumi/health`, {
+      headers: new Headers(),
+      signal: AbortSignal.timeout(5000)
+    })
+    const data = await res.json()
+    return c.json({
+      status: res.ok ? 'online' : 'degraded',
+      service: 'Lumi API Service',
+      upstream: data,
+      timestamp: new Date().toISOString()
+    })
+  } catch (err: any) {
+    return c.json({
+      status: 'offline',
+      service: 'Lumi API Service',
+      error: err.message,
+      timestamp: new Date().toISOString()
+    }, 503)
+  }
+})
+
 app.post('/verify/callback', async (c) => {
   try {
     let body: { code?: string; state?: string } = {}

@@ -12,6 +12,8 @@ export interface Env {
   UNLINK_WEBHOOK_URL?: string
   VERIFY_WEBHOOK_SECRET: string
   CALLBACK_HMAC_SECRET?: string
+  
+  LUMI_API_URL?: string
 
   VIEWS_KV: KVNamespace
 }

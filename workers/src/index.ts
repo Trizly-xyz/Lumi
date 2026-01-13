@@ -63,6 +63,30 @@ app.get('/health', async (c) => {
   })
 })
 
+app.get('/lumi/health', async (c) => {
+  const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
+  try {
+    const res = await fetch(`${lumiApiUrl}/lumi/health`, {
+      headers: new Headers(),
+      signal: AbortSignal.timeout(5000)
+    })
+    const data = await res.json()
+    return c.json({
+      status: res.ok ? 'online' : 'degraded',
+      service: 'Lumi API Service',
+      upstream: data,
+      timestamp: new Date().toISOString()
+    })
+  } catch (err: any) {
+    return c.json({
+      status: 'offline',
+      service: 'Lumi API Service',
+      error: err.message,
+      timestamp: new Date().toISOString()
+    }, 503)
+  }
+})
+
 app.post('/verify/callback', async (c) => {
   try {
     let body: { code?: string; state?: string } = {}
@@ -289,12 +313,13 @@ app.get('/verify/roblox/callback', async (c) => {
     const webhookStartTime = Date.now();
     
     try {
+      const headers = new Headers()
+      headers.set('Content-Type', 'application/json')
+      headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+      
       webhookRes = await safeFetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Verify-Secret": c.env.VERIFY_WEBHOOK_SECRET
-        },
+        headers,
         body: bodyString
       });
     } catch (e: any) {
@@ -471,12 +496,13 @@ app.get('/unlink/callback', async (c) => {
     
     let webhookRes
     try {
+      const headers = new Headers()
+      headers.set('Content-Type', 'application/json')
+      headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+      
       webhookRes = await safeFetch(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Verify-Secret': c.env.VERIFY_WEBHOOK_SECRET
-        },
+        headers,
         body: JSON.stringify(unlinkPayload)
       })
     } catch (e: any) {
@@ -529,12 +555,13 @@ app.post('/unlink/:discordId', async (c) => {
     const rawWebhookUrl = c.env.UNLINK_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
     
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/json')
+    headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+    
     const webhookRes = await safeFetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Verify-Secret': c.env.VERIFY_WEBHOOK_SECRET
-      },
+      headers,
       body: JSON.stringify(unlinkPayload)
     })
     
@@ -567,17 +594,24 @@ app.get('/lookup/discord/:discordId', async (c) => {
   const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:20942') + `/lumi/lookup/discord/${discordId}`
   
   try {
-    // Use fetch with empty headers to avoid CORS rejection
-    const res = await fetch(lumiUrl, { headers: {} })
+    console.log('[lookup-discord] URL:', lumiUrl, 'Method: GET')
+    // Strip problematic headers that cause CORS issues
+    const res = await fetch(lumiUrl, {
+      headers: new Headers()
+    })
+    console.log('[lookup-discord] Response status:', res.status)
+    console.log('[lookup-discord] Response headers:', Object.fromEntries(res.headers.entries()))
     
     if (!res.ok) {
+      const text = await res.text()
+      console.error('[lookup-discord] Error body:', text)
       return jsonError(c, res.status as any, 'API error')
     }
     
     const data = await res.json()
     return c.json(data)
   } catch (err: any) {
-    console.error('[lookup-discord] Error:', err?.message)
+    console.error('[lookup-discord] Exception:', err?.message, err?.stack)
     return jsonError(c, 502, 'Lookup service unavailable')
   }
 })
@@ -587,7 +621,7 @@ app.get('/lookup/roblox/:identifier', async (c) => {
   const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:20942') + `/lumi/lookup/roblox/${identifier}`
   
   try {
-    const res = await fetch(lumiUrl, { headers: {} })
+    const res = await fetch(lumiUrl, { headers: new Headers() })
     
     if (!res.ok) {
       return jsonError(c, res.status as any, 'API error')

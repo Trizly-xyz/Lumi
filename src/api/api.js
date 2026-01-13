@@ -15,13 +15,27 @@ module.exports = function startApi(eventBus) {
     "https://www.trizly.xyz",
     "http://trizly.xyz",
     "http://www.trizly.xyz",
-    "https://api.trizly.xyz"
+    "https://api.trizly.xyz",
+    "http://localhost:3000",
+    // Allow Cloudflare Workers and development
+    /\.workers\.dev$/,
+    /localhost/
   ];
 
   app.use(cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
-      if (allowedOrigins.includes(origin)) return callback(null, true);
+      
+      // Check string origins
+      if (allowedOrigins.some(o => typeof o === 'string' && o === origin)) {
+        return callback(null, true);
+      }
+      
+      // Check regex origins
+      if (allowedOrigins.some(o => o instanceof RegExp && o.test(origin))) {
+        return callback(null, true);
+      }
+      
       return callback(new Error("Not allowed by CORS"), false);
     },
     methods: ["GET", "POST", "OPTIONS"],

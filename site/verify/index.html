@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trizly Verification</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      opacity: 0.9;
+    }
+    .btn {
+      background: #5865F2;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      font-weight: 600;
+    }
+    .btn:hover {
+      background: #4752C4;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+    }
+    .btn:disabled {
+      background: #999;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .error {
+      background: rgba(255, 0, 0, 0.2);
+      border: 1px solid rgba(255, 0, 0, 0.5);
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+    }
+    .loading {
+      margin-top: 20px;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 Trizly</h1>
+    <p>Link your Discord account with your Roblox profile</p>
+    <button id="verifyBtn" class="btn">Connect with Discord</button>
+    <div class="loading" id="loading" style="display: none;">
+      <p>Loading...</p>
+    </div>
+    <div class="error" id="error"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const discordId = params.get('d_id');
+    const guildId = params.get('g_id');
+
+    const verifyBtn = document.getElementById('verifyBtn');
+    const loading = document.getElementById('loading');
+    const errorDiv = document.getElementById('error');
+
+    function showError(message) {
+      errorDiv.textContent = message;
+      errorDiv.style.display = 'block';
+      loading.style.display = 'none';
+      verifyBtn.disabled = false;
+    }
+
+    if (!discordId || !guildId) {
+      showError('Missing Discord or Guild ID. Please use the /verify command in Discord.');
+      verifyBtn.disabled = true;
+    }
+
+    verifyBtn.addEventListener('click', async () => {
+      if (!discordId || !guildId) return;
+
+      verifyBtn.disabled = true;
+      loading.style.display = 'block';
+      errorDiv.style.display = 'none';
+
+      try {
+        // Build Discord OAuth URL
+        const clientId = '1441999195601899622'; // Your Discord CLIENT_ID
+        const redirectUri = encodeURIComponent(window.location.origin + '/verify/callback');
+        const state = encodeURIComponent(`${discordId}:${guildId}`);
+        
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=identify+dm_channels.messages.write&state=${state}`;
+        
+        // Redirect to Discord OAuth
+        window.location.href = discordAuthUrl;
+      } catch (err) {
+        showError('Failed to start verification: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

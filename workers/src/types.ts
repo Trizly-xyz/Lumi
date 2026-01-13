@@ -1,0 +1,17 @@
+export interface Env {
+  DISCORD_CLIENT_ID: string
+  DISCORD_CLIENT_SECRET: string
+  DISCORD_REDIRECT_URI: string
+  DISCORD_REDIRECT_URI_UNLINK?: string
+
+  ROBLOX_CLIENT_ID: string
+  ROBLOX_CLIENT_SECRET: string
+  ROBLOX_REDIRECT_URI: string
+
+  VERIFY_WEBHOOK_URL: string
+  UNLINK_WEBHOOK_URL?: string
+  VERIFY_WEBHOOK_SECRET: string
+  CALLBACK_HMAC_SECRET?: string
+
+  VIEWS_KV: KVNamespace
+}

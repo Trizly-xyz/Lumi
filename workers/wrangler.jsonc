@@ -1,0 +1,29 @@
+{
+	"name": "trizly-workers",
+	"main": "src/index.ts",
+	"compatibility_date": "2025-11-23",
+	"routes": [
+		{
+			"pattern": "api.trizly.xyz/*",
+			"zone_name": "trizly.xyz"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "VIEWS_KV",
+			"id": "e3cf0dde797d444a95a2c1b1aa9bca19",
+			"remote": true
+		}
+	],
+	"env": {
+		"production": {
+			"kv_namespaces": [
+				{
+					"binding": "VIEWS_KV",
+					"id": "234805c30ff04a659ff6f74007227b44",
+					"remote": true
+				}
+			]
+		}
+	}
+}

@@ -277,7 +277,7 @@ app.get('/verify/roblox/callback', async (c) => {
       console.log('[roblox-callback] Including Discord OAuth tokens in webhook')
     }
 
-    const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+    const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
     const defaultWebhookUrl = `${lumiApiUrl}/lumi/verify/complete`
     const rawWebhookUrl = c.env.VERIFY_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
@@ -289,12 +289,13 @@ app.get('/verify/roblox/callback', async (c) => {
     const webhookStartTime = Date.now();
     
     try {
+      const headers = new Headers()
+      headers.set('Content-Type', 'application/json')
+      headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+      
       webhookRes = await safeFetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Verify-Secret": c.env.VERIFY_WEBHOOK_SECRET
-        },
+        headers,
         body: bodyString
       });
     } catch (e: any) {
@@ -464,19 +465,20 @@ app.get('/unlink/callback', async (c) => {
       isSynthetic: false
     }
     
-    const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+    const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
     const defaultWebhookUrl = `${lumiApiUrl}/lumi/unlink/complete`
     const rawWebhookUrl = c.env.UNLINK_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
     
     let webhookRes
     try {
+      const headers = new Headers()
+      headers.set('Content-Type', 'application/json')
+      headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+      
       webhookRes = await safeFetch(webhookUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Verify-Secret': c.env.VERIFY_WEBHOOK_SECRET
-        },
+        headers,
         body: JSON.stringify(unlinkPayload)
       })
     } catch (e: any) {
@@ -524,17 +526,18 @@ app.post('/unlink/:discordId', async (c) => {
       isSynthetic: false
     }
     
-    const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+    const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
     const defaultWebhookUrl = `${lumiApiUrl}/lumi/unlink/complete`
     const rawWebhookUrl = c.env.UNLINK_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
     
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/json')
+    headers.set('X-Verify-Secret', c.env.VERIFY_WEBHOOK_SECRET || '')
+    
     const webhookRes = await safeFetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Verify-Secret': c.env.VERIFY_WEBHOOK_SECRET
-      },
+      headers,
       body: JSON.stringify(unlinkPayload)
     })
     
@@ -564,12 +567,14 @@ app.get('/lookup', async (c) => {
 
 app.get('/lookup/discord/:discordId', async (c) => {
   const discordId = c.req.param('discordId')
-  const lumiUrl = (c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028') + `/lumi/lookup/discord/${discordId}`
+  const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:20942') + `/lumi/lookup/discord/${discordId}`
   
   try {
     console.log('[lookup-discord] URL:', lumiUrl, 'Method: GET')
-    // Try without any options first
-    const res = await fetch(lumiUrl)
+    // Strip problematic headers that cause CORS issues
+    const res = await fetch(lumiUrl, {
+      headers: new Headers()
+    })
     console.log('[lookup-discord] Response status:', res.status)
     console.log('[lookup-discord] Response headers:', Object.fromEntries(res.headers.entries()))
     
@@ -589,10 +594,10 @@ app.get('/lookup/discord/:discordId', async (c) => {
 
 app.get('/lookup/roblox/:identifier', async (c) => {
   const identifier = c.req.param('identifier')
-  const lumiUrl = (c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028') + `/lumi/lookup/roblox/${identifier}`
+  const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:20942') + `/lumi/lookup/roblox/${identifier}`
   
   try {
-    const res = await fetch(lumiUrl, { headers: {} })
+    const res = await fetch(lumiUrl, { headers: new Headers() })
     
     if (!res.ok) {
       return jsonError(c, res.status as any, 'API error')
@@ -742,7 +747,7 @@ app.get('/lumi/verify/roblox/callback', async (c) => {
       isSynthetic: false
     }
 
-    const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+    const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
     const webhookUrl = c.env.VERIFY_WEBHOOK_URL || `${lumiApiUrl}/lumi/verify/complete`
 
     await safeFetch(webhookUrl, {
@@ -818,7 +823,7 @@ app.get('/lumi/unlink/callback', async (c) => {
     if (!user.id) return jsonError(c, 500, 'Missing Discord user ID')
 
     const unlinkPayload = { discordId: user.id, isSynthetic: false }
-    const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+    const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
     const webhookUrl = c.env.UNLINK_WEBHOOK_URL || `${lumiApiUrl}/lumi/unlink/complete`
     
     await safeFetch(webhookUrl, {
@@ -859,7 +864,7 @@ app.post('/lumi/unlink/:discordId', async (c) => {
   }
 
   const unlinkPayload = { discordId, isSynthetic: false }
-  const lumiApiUrl = c.env.LUMI_API_URL || 'http://verify.trizly.xyz:22028'
+  const lumiApiUrl = c.env.LUMI_API_URL || 'http://65.21.16.214:20942'
   const webhookUrl = c.env.UNLINK_WEBHOOK_URL || `${lumiApiUrl}/lumi/unlink/complete`
   
   try {
@@ -893,7 +898,7 @@ app.get('/lumi/lookup', async (c) => {
 app.get('/lumi/lookup/discord/:discordId', async (c) => {
   try {
     const discordId = c.req.param('discordId')
-    const lumiUrl = `http://verify.trizly.xyz:22028/lumi/lookup/discord/${discordId}`
+    const lumiUrl = `http://65.21.16.214:20942/lumi/lookup/discord/${discordId}`
     const res = await fetch(lumiUrl, { headers: {} })
     if (!res.ok) return jsonError(c, res.status as any, 'API error')
     const data = await res.json()
@@ -907,7 +912,7 @@ app.get('/lumi/lookup/discord/:discordId', async (c) => {
 app.get('/lumi/lookup/roblox/:identifier', async (c) => {
   try {
     const identifier = c.req.param('identifier')
-    const lumiUrl = `http://verify.trizly.xyz:22028/lumi/lookup/roblox/${identifier}`
+    const lumiUrl = `http://65.21.16.214:20942/lumi/lookup/roblox/${identifier}`
     const res = await fetch(lumiUrl, { headers: {} })
     if (!res.ok) return jsonError(c, res.status as any, 'API error')
     const data = await res.json()

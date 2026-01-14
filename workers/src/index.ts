@@ -580,60 +580,8 @@ app.post('/unlink/:discordId', async (c) => {
   }
 })
 
-// Proxy /lookup/* requests to Lumi Bot API via domain (not direct IP)
-app.get('/lookup', async (c) => {
-  return c.json({ 
-    status: 'ok', 
-    service: 'lookup',
-    endpoints: ['/lookup/discord/:discordId', '/lookup/roblox/:identifier']
-  })
-})
-
-app.get('/lookup/discord/:discordId', async (c) => {
-  const discordId = c.req.param('discordId')
-  const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:2052') + `/lumi/lookup/discord/${discordId}`
-  
-  try {
-    console.log('[lookup-discord] URL:', lumiUrl, 'Method: GET')
-    // Strip problematic headers that cause CORS issues
-    const res = await fetch(lumiUrl, {
-      headers: new Headers()
-    })
-    console.log('[lookup-discord] Response status:', res.status)
-    console.log('[lookup-discord] Response headers:', Object.fromEntries(res.headers.entries()))
-    
-    if (!res.ok) {
-      const text = await res.text()
-      console.error('[lookup-discord] Error body:', text)
-      return jsonError(c, res.status as any, 'API error')
-    }
-    
-    const data = await res.json()
-    return c.json(data)
-  } catch (err: any) {
-    console.error('[lookup-discord] Exception:', err?.message, err?.stack)
-    return jsonError(c, 502, 'Lookup service unavailable')
-  }
-})
-
-app.get('/lookup/roblox/:identifier', async (c) => {
-  const identifier = c.req.param('identifier')
-  const lumiUrl = (c.env.LUMI_API_URL || 'http://65.21.16.214:2052') + `/lumi/lookup/roblox/${identifier}`
-  
-  try {
-    const res = await fetch(lumiUrl, { headers: new Headers() })
-    
-    if (!res.ok) {
-      return jsonError(c, res.status as any, 'API error')
-    }
-    
-    const data = await res.json()
-    return c.json(data)
-  } catch (err: any) {
-    console.error('[lookup-roblox] Error:', err?.message)
-    return jsonError(c, 502, 'Lookup service unavailable')
-  }
-})
+// /lumi/* requests (lookups, etc.) fall through to origin server (API Hub)
+// Worker only handles OAuth flows that need secrets
 
 // Alias /lumi/* routes to root handlers for compatibility with hub proxy format
 app.post('/lumi/verify/callback', async (c) => {
@@ -911,41 +859,7 @@ app.post('/lumi/unlink/:discordId', async (c) => {
   }
 })
 
-app.get('/lumi/lookup', async (c) => {
-  return c.json({ 
-    status: 'ok', 
-    service: 'lookup',
-    endpoints: ['/lumi/lookup/discord/:discordId', '/lumi/lookup/roblox/:identifier']
-  })
-})
-
-app.get('/lumi/lookup/discord/:discordId', async (c) => {
-  try {
-    const discordId = c.req.param('discordId')
-    const lumiUrl = `http://65.21.16.214:2052/lumi/lookup/discord/${discordId}`
-    const res = await fetch(lumiUrl, { headers: {} })
-    if (!res.ok) return jsonError(c, res.status as any, 'API error')
-    const data = await res.json()
-    return c.json(data)
-  } catch (err: any) {
-    console.error('[lumi-lookup-discord] Error:', err?.message)
-    return jsonError(c, 502, 'Lookup service unavailable')
-  }
-})
-
-app.get('/lumi/lookup/roblox/:identifier', async (c) => {
-  try {
-    const identifier = c.req.param('identifier')
-    const lumiUrl = `http://65.21.16.214:2052/lumi/lookup/roblox/${identifier}`
-    const res = await fetch(lumiUrl, { headers: {} })
-    if (!res.ok) return jsonError(c, res.status as any, 'API error')
-    const data = await res.json()
-    return c.json(data)
-  } catch (err: any) {
-    console.error('[lumi-lookup-roblox] Error:', err?.message)
-    return jsonError(c, 502, 'Lookup service unavailable')
-  }
-})
+// /lumi/lookup/* requests fall through to origin (API Hub) - no Worker proxy needed
 
 app.post('/lumi/portfolio/views/:page', async (c) => {
   try {

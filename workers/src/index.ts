@@ -1053,4 +1053,17 @@ app.post('/lumi/portfolio/views/:page', async (c) => {
   }
 })
 
-export default app
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    // Let Hono handle the request
+    const response = await app.fetch(request, env)
+    
+    // If Hono returns 404, pass through to origin
+    if (response.status === 404) {
+      console.log('[passthrough] Passing request to origin:', request.url)
+      return fetch(request)
+    }
+    
+    return response
+  }
+}

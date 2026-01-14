@@ -558,6 +558,131 @@ app.post('/unlink/:discordId', async (c) => {
   }
 })
 
+// Proxy /lookup/* requests to origin API server
+app.get('/lookup/discord/:discordId', async (c) => {
+  try {
+    const discordId = c.req.param('discordId')
+    if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+      return jsonError(c, 400, 'Invalid Discord ID format')
+    }
+
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const response = await safeFetch(`${apiUrl}/lumi/lookup/discord/${discordId}`)
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lookup-discord] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Lookup failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lookup-discord] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
+app.get('/lookup/roblox/:identifier', async (c) => {
+  try {
+    const identifier = c.req.param('identifier')
+    if (!identifier) {
+      return jsonError(c, 400, 'Missing identifier')
+    }
+
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const response = await safeFetch(`${apiUrl}/lumi/lookup/roblox/${encodeURIComponent(identifier)}`)
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lookup-roblox] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Lookup failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lookup-roblox] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
+// Proxy /lumi/health to origin API server
+app.get('/lumi/health', async (c) => {
+  try {
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const response = await safeFetch(`${apiUrl}/health`)
+    
+    if (!response.ok) {
+      return jsonError(c, 502, 'Origin API health check failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lumi-health] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
+// Proxy /lumi/verify/complete to origin API server (webhook endpoint)
+app.post('/lumi/verify/complete', async (c) => {
+  try {
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const body = await c.req.text()
+    
+    const response = await safeFetch(`${apiUrl}/lumi/verify/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Verify-Secret': c.req.header('X-Verify-Secret') || ''
+      },
+      body
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lumi-verify-complete] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Verification completion failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lumi-verify-complete] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
+// Proxy /lumi/unlink/complete to origin API server (webhook endpoint)
+app.post('/lumi/unlink/complete', async (c) => {
+  try {
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const body = await c.req.text()
+    
+    const response = await safeFetch(`${apiUrl}/lumi/unlink/complete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Verify-Secret': c.req.header('X-Verify-Secret') || ''
+      },
+      body
+    })
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lumi-unlink-complete] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Unlink completion failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lumi-unlink-complete] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
 // /lumi/* requests (lookups, etc.) fall through to origin server (API Hub)
 // Worker only handles OAuth flows that need secrets
 
@@ -837,7 +962,54 @@ app.post('/lumi/unlink/:discordId', async (c) => {
   }
 })
 
-// /lumi/lookup/* requests fall through to origin (API Hub) - no Worker proxy needed
+// Proxy /lumi/lookup/* requests to origin API server
+app.get('/lumi/lookup/discord/:discordId', async (c) => {
+  try {
+    const discordId = c.req.param('discordId')
+    if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+      return jsonError(c, 400, 'Invalid Discord ID format')
+    }
+
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const response = await safeFetch(`${apiUrl}/lumi/lookup/discord/${discordId}`)
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lumi-lookup-discord] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Lookup failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lumi-lookup-discord] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
+
+app.get('/lumi/lookup/roblox/:identifier', async (c) => {
+  try {
+    const identifier = c.req.param('identifier')
+    if (!identifier) {
+      return jsonError(c, 400, 'Missing identifier')
+    }
+
+    const apiUrl = c.env.LUMI_API_URL || 'http://localhost:3000'
+    const response = await safeFetch(`${apiUrl}/lumi/lookup/roblox/${encodeURIComponent(identifier)}`)
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('[lumi-lookup-roblox] Origin API error:', { status: response.status, error: errorText })
+      return jsonError(c, response.status, errorText || 'Lookup failed')
+    }
+
+    const data = await response.json()
+    return c.json(data)
+  } catch (err: any) {
+    console.error('[lumi-lookup-roblox] fatal', err)
+    return jsonError(c, 500, 'Internal error', { error: err?.message })
+  }
+})
 
 app.post('/lumi/portfolio/views/:page', async (c) => {
   try {

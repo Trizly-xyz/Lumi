@@ -4,7 +4,15 @@
 	"compatibility_date": "2025-11-23",
 	"routes": [
 		{
-			"pattern": "api.trizly.xyz/*",
+			"pattern": "api.trizly.xyz/verify/*",
+			"zone_name": "trizly.xyz"
+		},
+		{
+			"pattern": "api.trizly.xyz/portfolio/*",
+			"zone_name": "trizly.xyz"
+		},
+		{
+			"pattern": "api.trizly.xyz/unlink/*",
 			"zone_name": "trizly.xyz"
 		}
 	],

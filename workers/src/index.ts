@@ -34,8 +34,7 @@ const sessionStore = new Map<string, string>()
 
 function normalizeWebhookUrl(url: string | undefined) {
   if (!url) return url
-
-  return url.replace('/api/verify/complete', '/lumi/verify/complete').replace('/verify/complete', '/lumi/verify/complete')
+  return url
 }
 
 app.use('*', cors({ origin: '*', allowMethods: ['GET', 'POST', 'OPTIONS'], allowHeaders: ['Content-Type', 'Authorization'] }))
@@ -258,7 +257,7 @@ app.get('/verify/roblox/callback', async (c) => {
       console.log('[roblox-callback] Including Discord OAuth tokens in webhook')
     }
 
-    const defaultWebhookUrl = 'https://api.trizly.xyz/lumi/verify/complete'
+    const defaultWebhookUrl = 'https://api.trizly.xyz/verify/complete'
     const rawWebhookUrl = c.env.VERIFY_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
 
@@ -444,7 +443,7 @@ app.get('/unlink/callback', async (c) => {
       isSynthetic: false
     }
     
-    const defaultWebhookUrl = 'https://api.trizly.xyz/lumi/unlink/complete'
+    const defaultWebhookUrl = 'https://api.trizly.xyz/unlink/complete'
     const rawWebhookUrl = c.env.UNLINK_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
     
@@ -503,7 +502,7 @@ app.post('/unlink/:discordId', async (c) => {
       isSynthetic: false
     }
     
-    const defaultWebhookUrl = 'https://api.trizly.xyz/lumi/unlink/complete'
+    const defaultWebhookUrl = 'https://api.trizly.xyz/unlink/complete'
     const rawWebhookUrl = c.env.UNLINK_WEBHOOK_URL
     const webhookUrl = normalizeWebhookUrl(rawWebhookUrl) || defaultWebhookUrl
     

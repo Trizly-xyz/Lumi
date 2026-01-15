@@ -32,7 +32,7 @@ function buildPublicBase(req) {
 function buildWebhookUrl(req) {
   if (process.env.VERIFY_WEBHOOK_URL) return process.env.VERIFY_WEBHOOK_URL;
   const base = buildPublicBase(req);
-  return `${base}/lumi/verify/complete`;
+  return `${base}/verify/complete`;
 }
 
 function buildSuccessRedirect() {
@@ -85,7 +85,7 @@ router.post('/callback', async (req, res) => {
       const nonce = crypto.randomUUID().slice(0, 8);
       const enrichedState = `${discordId}:${guildId}:${nonce}:${sessionId}`;
       const base = buildPublicBase(req);
-      const nextRobloxStartUrl = `${base}/lumi/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
+      const nextRobloxStartUrl = `${base}/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
 
       return res.json({ status: 'ok', state: enrichedState, nextRobloxStartUrl });
     }
@@ -97,7 +97,7 @@ router.post('/callback', async (req, res) => {
   const nonce = crypto.randomUUID().slice(0, 8);
   const enrichedState = `${discordId}:${guildId}:${nonce}`;
   const base = buildPublicBase(req);
-  const nextRobloxStartUrl = `${base}/lumi/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
+  const nextRobloxStartUrl = `${base}/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
 
   return res.json({ status: 'ok', state: enrichedState, nextRobloxStartUrl });
 });
@@ -111,7 +111,7 @@ router.get('/callback', (req, res) => {
   const nonce = crypto.randomUUID().slice(0, 8);
   const enrichedState = `${discordId}:${guildId}:${nonce}`;
   const base = buildPublicBase(req);
-  const nextRobloxStartUrl = `${base}/lumi/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
+  const nextRobloxStartUrl = `${base}/verify/roblox/start?state=${encodeURIComponent(enrichedState)}`;
   return res.redirect(nextRobloxStartUrl);
 });
 

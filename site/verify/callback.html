@@ -3,157 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Processing...</title>
+  <title>Verification...</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
     }
-    .container {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 20px;
-      padding: 40px;
-      max-width: 500px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #fff;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-    }
-    p {
-      font-size: 1rem;
-      opacity: 0.9;
-      margin: 10px 0;
-    }
-    .error {
-      background: rgba(255, 0, 0, 0.2);
-      border: 1px solid rgba(255, 0, 0, 0.5);
-      padding: 15px;
-      border-radius: 8px;
-      margin-top: 20px;
-    }
+    /* Additional styles */
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="spinner" id="spinner"></div>
-    <h1 id="title">Processing Verification...</h1>
-    <p id="message">Please wait while we connect your accounts</p>
-    <div id="error" style="display: none;" class="error"></div>
-  </div>
-
+  <h1>Verification in Progress</h1>
+  <p>Please hold on while we verify your account.</p>
+  <div id="error" style="display: none;" class="error"></div>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    const state = params.get('state');
-
-    const spinner = document.getElementById('spinner');
-    const title = document.getElementById('title');
-    const message = document.getElementById('message');
-    const errorDiv = document.getElementById('error');
-
-    function showError(msg) {
-      spinner.style.display = 'none';
-      title.textContent = 'Verification Failed';
-      message.textContent = '';
-      errorDiv.textContent = msg;
-      errorDiv.style.display = 'block';
-    }
-
-    async function processCallback() {
-      if (!code) {
-        showError('Missing authorization code. Please try again from Discord.');
-        return;
-      }
-
-      if (!state) {
-        showError('Missing state parameter. Please use the /verify command in Discord.');
-        return;
-      }
-
-      try {
-        message.textContent = 'Step 1/2: Verifying Discord account...';
-
-        const apiBases = [
-          'https://api.trizly.xyz',
-          'http://prem-eu1.bot-hosting.net:22028',
-          'http://37.27.141.177:22028'
-        ];
-
-        let data = null;
-        let lastError = null;
-
-        for (const base of apiBases) {
-          const url = `${base.replace(/\/$/, '')}/lumi/verify/callback`;
-          try {
-            const response = await fetch(url, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ code, state })
-            });
-
-            const json = await response.json();
-            if (response.ok && !json.error) {
-              data = json;
-              break;
-            }
-            lastError = json.error || 'API returned an error';
-          } catch (err) {
-            lastError = err.message;
-          }
-        }
-
-        if (!data) {
-          throw new Error(lastError || 'No API endpoints responded');
-        }
-
-        if (!data.nextRobloxStartUrl) {
-          throw new Error('Missing Roblox authorization URL');
-        }
-
-        message.textContent = 'Step 2/2: Redirecting to Roblox...';
-
-        // Redirect to Roblox OAuth
-        setTimeout(() => {
-          window.location.href = data.nextRobloxStartUrl;
-        }, 500);
-
-      } catch (err) {
-        console.error('Callback error:', err);
-        showError('Failed to process verification: ' + err.message);
-      }
-    }
-
-    // Start processing immediately
-    processCallback();
+    // JavaScript for handling verification
   </script>
 </body>
 </html>

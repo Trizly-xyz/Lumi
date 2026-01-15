@@ -11,7 +11,7 @@ function startSite() {
 	const eventBus = require("./src/utils/eventBus");
 	const startApi = require('./src/api/api');
 	const apiApp = startApi(eventBus);
-	app.use('/lumi', apiApp);
+	app.use(apiApp);
 
 
 	// Health check endpoint

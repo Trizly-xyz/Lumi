@@ -530,4 +530,28 @@ app.post('/unlink/:discordId', async (c) => {
   }
 })
 
+app.all('*', async (c) => {
+  const url = new URL(c.req.url)
+  const originUrl = url.toString()
+  
+  console.log('[passthrough]', c.req.method, url.pathname)
+  
+  try {
+    const response = await fetch(originUrl, {
+      method: c.req.method,
+      headers: c.req.raw.headers,
+      body: c.req.method !== 'GET' && c.req.method !== 'HEAD' ? await c.req.raw.clone().arrayBuffer() : undefined
+    })
+    
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers
+    })
+  } catch (e: any) {
+    console.error('[passthrough] error:', e.message)
+    return jsonError(c, 502, 'Origin server error', { error: e.message })
+  }
+})
+
 export default app
